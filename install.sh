@@ -5,11 +5,11 @@
 # Two ways to use it:
 #
 #   1) Remote one-liner (clones the repo, then installs):
-#        curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/install.sh | bash
+#        curl -fsSL https://raw.githubusercontent.com/AlphaNodesDev/forgelink/main/install.sh | bash
 #
 #   2) From an existing clone:
-#        git clone https://github.com/<owner>/<repo>.git
-#        cd <repo>
+#        git clone https://github.com/AlphaNodesDev/forgelink.git
+#        cd forgelink
 #        bash install.sh
 #
 # What it does:
@@ -26,8 +26,8 @@
 #
 set -euo pipefail
 
-# --- Configuration (edit REPO after you publish) ---------------------------
-REPO="${FORGELINK_REPO:-https://github.com/your-org/forgelink.git}"
+# --- Configuration ---------------------------------------------------------
+REPO="${FORGELINK_REPO:-https://github.com/AlphaNodesDev/forgelink.git}"
 REF="${FORGELINK_REF:-main}"
 TARGET_DIR="${FORGELINK_DIR:-forgelink}"
 WITH_APPS=0

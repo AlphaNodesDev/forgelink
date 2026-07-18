@@ -7,7 +7,7 @@
 # clones/builds the repo, creates a service user, and starts the API.
 #
 # Usage (as a sudo-capable user):
-#   curl -fsSL https://raw.githubusercontent.com/<owner>/<repo>/main/scripts/server-setup.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/AlphaNodesDev/forgelink/main/scripts/server-setup.sh | sudo bash
 #
 # or from a clone:
 #   sudo bash scripts/server-setup.sh
@@ -22,7 +22,7 @@
 #
 set -euo pipefail
 
-REPO="${FORGELINK_REPO:-https://github.com/your-org/forgelink.git}"
+REPO="${FORGELINK_REPO:-https://github.com/AlphaNodesDev/forgelink.git}"
 REF="${FORGELINK_REF:-main}"
 APP_DIR="${FORGELINK_APP_DIR:-/opt/forgelink/app}"
 PORT="${FORGELINK_PORT:-8080}"

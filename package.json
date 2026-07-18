@@ -5,13 +5,13 @@
   "description": "ForgeLink is a custom launcher builder and deployment platform for game servers. Turn your 7 Days to Die (and other) dedicated server into a branded, auto-updating launcher with automatic mod sync, file verification, live server status and one-command Linux deployment.",
   "license": "SEE LICENSE IN LICENSE",
   "author": "ForgeLink",
-  "homepage": "https://github.com/YOUR_GITHUB_USERNAME/forgelink#readme",
+  "homepage": "https://github.com/AlphaNodesDev/forgelink#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_GITHUB_USERNAME/forgelink.git"
+    "url": "https://github.com/AlphaNodesDev/forgelink.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_GITHUB_USERNAME/forgelink/issues"
+    "url": "https://github.com/AlphaNodesDev/forgelink/issues"
   },
   "keywords": [
     "7-days-to-die",

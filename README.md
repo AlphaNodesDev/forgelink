@@ -140,13 +140,13 @@ where mods are stored, how to query server status, and any game-specific config.
 Installs ForgeLink, its dependencies, and builds the backend in one go:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/forgelink/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/AlphaNodesDev/forgelink/main/install.sh | bash
 ```
 
 Also build the desktop Builder and Launcher apps:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/forgelink/main/install.sh | bash -s -- --with-apps
+curl -fsSL https://raw.githubusercontent.com/AlphaNodesDev/forgelink/main/install.sh | bash -s -- --with-apps
 ```
 
 **What `install.sh` does, step by step:**
@@ -164,13 +164,13 @@ creates a service user, generates secrets/API keys, and starts the Server API as
 `systemd` service with a health check:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/forgelink/main/scripts/server-setup.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/AlphaNodesDev/forgelink/main/scripts/server-setup.sh | sudo bash
 ```
 
 ### Option C — Manual install (from a clone)
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/forgelink.git
+git clone https://github.com/AlphaNodesDev/forgelink.git
 cd forgelink
 npm install
 npm run build          # builds shared + adapters + server-api
@@ -180,7 +180,7 @@ npm run dev:builder    # launch the Builder desktop app
 npm run dev:launcher   # launch the Launcher desktop app
 ```
 
-> Replace `YOUR_GITHUB_USERNAME/forgelink` with your actual GitHub path everywhere
+> Replace `AlphaNodesDev/forgelink` with your actual GitHub path everywhere
 > above and inside `install.sh` / `scripts/server-setup.sh` after you publish. See
 > [PUBLISHING.md](PUBLISHING.md).
 
