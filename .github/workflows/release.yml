@@ -1,0 +1,72 @@
+name: Build & Release desktop apps
+
+# Builds the ForgeLink Builder and Launcher into Windows installers and attaches
+# them to a GitHub Release. Triggered when you push a version tag like v1.0.0.
+#
+#   git tag v1.0.0
+#   git push origin v1.0.0
+#
+# The resulting installers appear at:
+#   https://github.com/AlphaNodesDev/forgelink/releases
+
+on:
+  push:
+    tags:
+      - 'v*'
+  # Allows manually running from the Actions tab without a tag.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build shared + adapters
+        run: |
+          npm run build:shared
+          npm run build:adapters
+
+      - name: Package Builder (Windows installer)
+        run: npm run package --workspace=@forgelink/builder
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package Launcher (Windows installer)
+        run: npm run package --workspace=@forgelink/launcher
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect installers
+        shell: bash
+        run: |
+          mkdir -p dist-release
+          find packages/builder/release packages/launcher/release -type f \
+            \( -name '*.exe' -o -name '*.blockmap' -o -name '*.yml' \) \
+            -exec cp {} dist-release/ \; || true
+          ls -la dist-release
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: forgelink-windows-installers
+          path: dist-release/*
+
+      - name: Publish to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist-release/*
+          generate_release_notes: true
