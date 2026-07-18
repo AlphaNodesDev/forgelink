@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "electron",
+    "outDir": "dist-test",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": false,
+    "types": ["node"]
+  },
+  "include": ["electron/services/**/*.ts"],
+  "exclude": ["electron/main.ts", "electron/preload.ts", "electron/ipc-contract.ts"]
+}

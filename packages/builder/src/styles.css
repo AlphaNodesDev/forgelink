@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Theme tokens as CSS variables. The .dark / .light classes on <html> swap the
+ * palette; branding colors can override --brand-* at runtime for live preview.
+ */
+:root {
+  --brand-primary: 109 40 217;   /* violet-700 */
+  --brand-accent: 34 211 238;    /* cyan-400 */
+  --surface: 245 245 251;
+  --surface-raised: 255 255 255;
+  --fg: 18 18 26;
+  --muted: 100 100 120;
+}
+
+html.dark {
+  --surface: 11 11 18;
+  --surface-raised: 22 22 32;
+  --fg: 232 232 240;
+  --muted: 150 150 170;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: rgb(var(--fg));
+  background: rgb(var(--surface));
+}
+
+/* Custom scrollbar for a native, polished feel. */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgb(var(--muted) / 0.3); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--muted) / 0.5); }
+
+/* Glass card utility. */
+@layer components {
+  .glass {
+    @apply bg-white/5 dark:bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  }
+  .glass-light {
+    background: rgb(var(--surface-raised) / 0.7);
+    @apply backdrop-blur-xl border border-black/5 rounded-2xl;
+  }
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white transition-transform active:scale-95;
+    background-image: linear-gradient(135deg, rgb(var(--brand-primary)), rgb(var(--brand-accent)));
+    box-shadow: 0 10px 30px -12px rgb(var(--brand-primary));
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors;
+    @apply hover:bg-black/5 dark:hover:bg-white/5;
+  }
+  .field {
+    @apply w-full rounded-xl px-4 py-2.5 outline-none transition-colors;
+    @apply bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10;
+    @apply focus:border-brand focus:ring-2 focus:ring-brand/30;
+    color: rgb(var(--fg));
+  }
+  .label { @apply block text-sm font-medium mb-1.5 text-[rgb(var(--muted))]; }
+}

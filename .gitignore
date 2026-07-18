@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Electron packaging output
+release/
+packages/builder/release/
+packages/launcher/release/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Databases
+*.sqlite
+*.sqlite3
+*.db
+data/*.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# ForgeLink generated artifacts
+output/
+generated/
+forgelink-projects/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/

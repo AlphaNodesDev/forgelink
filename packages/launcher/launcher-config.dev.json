@@ -1,0 +1,28 @@
+{
+  "apiBase": "http://localhost:8080",
+  "serverId": "dev-server",
+  "serverName": "ForgeLink Dev Server",
+  "gameId": "seven-days-to-die",
+  "verifySignatures": false,
+  "verifyChecksums": true,
+  "publicKey": "",
+  "website": "https://example.com",
+  "discord": "https://discord.gg/example",
+  "branding": {
+    "launcherIcon": "",
+    "backgroundImage": "",
+    "banner": "",
+    "serverLogo": "",
+    "splashScreen": "",
+    "primaryColor": "#6d28d9",
+    "accentColor": "#22d3ee",
+    "fontFamily": "Inter",
+    "themeMode": "dark",
+    "customCss": ""
+  },
+  "autoJoin": {
+    "serverIp": "127.0.0.1",
+    "gamePort": 26900,
+    "password": ""
+  }
+}

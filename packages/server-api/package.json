@@ -1,0 +1,41 @@
+{
+  "name": "@forgelink/server-api",
+  "version": "1.0.0",
+  "description": "ForgeLink Server API — Express + SQLite backend for launcher distribution, mod sync and analytics.",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "forgelink-api": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-assets.mjs",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "clean": "rimraf dist",
+    "test": "npm run build && node --test \"dist/**/*.test.js\""
+  },
+  "dependencies": {
+    "@forgelink/adapters": "1.0.0",
+    "@forgelink/shared": "1.0.0",
+    "better-sqlite3": "^11.3.0",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/compression": "^1.7.5",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^22.5.0",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}

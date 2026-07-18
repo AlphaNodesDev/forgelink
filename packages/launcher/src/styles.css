@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-primary: 109 40 217;
+  --brand-accent: 34 211 238;
+}
+
+* { -webkit-font-smoothing: antialiased; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #e8e8f0;
+  background: #0b0b12;
+  overflow: hidden;
+  user-select: none;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 999px; }
+
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  }
+  .play-btn {
+    @apply inline-flex items-center justify-center gap-2 px-10 py-4 rounded-2xl font-black text-lg text-white transition-transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+    background-image: linear-gradient(135deg, rgb(var(--brand-primary)), rgb(var(--brand-accent)));
+    box-shadow: 0 16px 40px -12px rgb(var(--brand-primary));
+  }
+  .chip {
+    @apply px-3 py-1.5 rounded-lg text-xs font-medium bg-white/10;
+  }
+}

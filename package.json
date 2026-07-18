@@ -1,0 +1,36 @@
+{
+  "name": "forgelink",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ForgeLink - Launcher builder and deployment platform for game servers.",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "ForgeLink",
+  "workspaces": [
+    "packages/shared",
+    "packages/adapters",
+    "packages/server-api",
+    "packages/builder",
+    "packages/launcher"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=@forgelink/shared && npm run build --workspace=@forgelink/adapters && npm run build --workspace=@forgelink/server-api",
+    "build:shared": "npm run build --workspace=@forgelink/shared",
+    "build:adapters": "npm run build --workspace=@forgelink/adapters",
+    "build:server": "npm run build --workspace=@forgelink/server-api",
+    "dev:server": "npm run dev --workspace=@forgelink/server-api",
+    "dev:builder": "npm run dev --workspace=@forgelink/builder",
+    "dev:launcher": "npm run dev --workspace=@forgelink/launcher",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "clean": "node scripts/clean.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "rimraf": "^6.0.1",
+    "@types/node": "^22.5.0"
+  }
+}
