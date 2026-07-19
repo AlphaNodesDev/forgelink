@@ -83,6 +83,14 @@ export function publicRouter(db: ForgeLinkDatabase, config: AppConfig, logger: L
     });
   });
 
+  // Launcher branding + auto-join config. A generic launcher .exe fetches this
+  // at startup so it can be fully branded per server without a rebuild.
+  router.get('/config', (_req, res) => {
+    const cfg = db.getSiteConfig();
+    if (!cfg) throw new HttpError(404, 'No launcher config has been published yet');
+    res.json(cfg);
+  });
+
   router.get('/news', (_req, res) => {
     const server = primary();
     res.json({ news: db.listNews(server.id) });

@@ -81,6 +81,27 @@ export class ForgeLinkDatabase {
     return this.db.prepare('SELECT * FROM servers ORDER BY created_at ASC LIMIT 1').get() as never;
   }
 
+  // ---- Site config (launcher branding + auto-join) ----
+
+  /** Store the launcher config document (branding, serverName, autoJoin). */
+  putSiteConfig(document: Record<string, unknown>): void {
+    this.db
+      .prepare(
+        `INSERT INTO site_config (id, document, updated_at)
+         VALUES ('primary', @document, @now)
+         ON CONFLICT(id) DO UPDATE SET document=excluded.document, updated_at=excluded.updated_at`,
+      )
+      .run({ document: JSON.stringify(document), now: new Date().toISOString() });
+  }
+
+  /** Read the launcher config document, or undefined if not published yet. */
+  getSiteConfig(): Record<string, unknown> | undefined {
+    const row = this.db.prepare("SELECT document FROM site_config WHERE id = 'primary'").get() as
+      | { document: string }
+      | undefined;
+    return row ? (JSON.parse(row.document) as Record<string, unknown>) : undefined;
+  }
+
   // ---- Launcher versions ----
 
   addLauncherVersion(serverId: string, d: UpdateDescriptor, filePath: string): void {

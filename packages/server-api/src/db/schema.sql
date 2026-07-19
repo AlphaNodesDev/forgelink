@@ -5,6 +5,15 @@
 PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;
 
+-- Launcher branding + runtime config, served to the launcher at startup.
+-- A single row (id='primary') holds the JSON document the launcher reads so a
+-- generic launcher .exe can be fully branded per server without a rebuild.
+CREATE TABLE IF NOT EXISTS site_config (
+  id          TEXT PRIMARY KEY,
+  document    TEXT NOT NULL,       -- JSON: branding + autoJoin + serverName
+  updated_at  TEXT NOT NULL
+);
+
 -- A published server "site". A single API instance serves one primary site but
 -- the table allows multiple for future multi-tenant hosting.
 CREATE TABLE IF NOT EXISTS servers (

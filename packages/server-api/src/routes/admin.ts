@@ -87,6 +87,36 @@ export function adminRouter(db: ForgeLinkDatabase, config: AppConfig): Router {
     }),
   );
 
+  // Publish the launcher branding + auto-join config (served at /api/config).
+  router.post(
+    '/publish/config',
+    guard,
+    asyncRoute(async (req: AuthedRequest, res) => {
+      const body = z
+        .object({
+          serverName: z.string().min(1),
+          autoJoin: z.object({
+            serverIp: z.string().min(1),
+            gamePort: z.number().int(),
+            password: z.string().default(''),
+          }),
+          branding: z
+            .object({
+              logoUrl: z.string().default(''),
+              backgroundUrl: z.string().default(''),
+              primaryColor: z.string().default('#6d28d9'),
+              accentColor: z.string().default('#22d3ee'),
+              website: z.string().default(''),
+              discord: z.string().default(''),
+            })
+            .default({}),
+        })
+        .parse(req.body);
+      db.putSiteConfig(body);
+      res.json({ ok: true });
+    }),
+  );
+
   // Analytics summary for the owner dashboard.
   router.get(
     '/analytics/:serverId',

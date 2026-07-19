@@ -106,11 +106,40 @@ function registerIpc(): void {
   ipcMain.handle(IPC.openExternal, (_e, url: string) => shell.openExternal(url));
 }
 
-app.whenReady().then(() => {
+/**
+ * Merge server-published config over the bundled config so branding, server
+ * name and auto-join can be updated from the server without a new build.
+ */
+async function applyRemoteConfig(): Promise<void> {
+  const remote = await api.getRemoteConfig();
+  if (!remote) return;
+  if (typeof remote.serverName === 'string') config.serverName = remote.serverName;
+  const rb = remote.branding as Record<string, string> | undefined;
+  if (rb) {
+    if (rb.logoUrl) config.branding.serverLogo = rb.logoUrl;
+    if (rb.backgroundUrl) config.branding.backgroundImage = rb.backgroundUrl;
+    if (rb.primaryColor) config.branding.primaryColor = rb.primaryColor;
+    if (rb.accentColor) config.branding.accentColor = rb.accentColor;
+    if (rb.website) config.website = rb.website;
+    if (rb.discord) config.discord = rb.discord;
+  }
+  const aj = remote.autoJoin as { serverIp?: string; gamePort?: number; password?: string } | undefined;
+  if (aj) {
+    if (aj.serverIp) config.autoJoin.serverIp = aj.serverIp;
+    if (typeof aj.gamePort === 'number') config.autoJoin.gamePort = aj.gamePort;
+    if (typeof aj.password === 'string') config.autoJoin.password = aj.password;
+  }
+  logger.info('Applied server-published config', { server: config.serverName });
+}
+
+app.whenReady().then(async () => {
   clientId = resolveClientId();
   config = loadLauncherConfig(path.dirname(app.getPath('exe')));
   api = new ApiClient(config.apiBase.replace(/\/$/, ''), clientId);
   logger.info('Launcher starting', { server: config.serverName, apiBase: config.apiBase });
+
+  // Pull live branding/auto-join from the server (best-effort).
+  await applyRemoteConfig();
 
   // Record the install/first-launch download event once.
   void api.track(config.serverId, 'download');

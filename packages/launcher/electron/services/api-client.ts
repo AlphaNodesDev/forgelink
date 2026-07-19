@@ -36,6 +36,21 @@ export class ApiClient {
     }
   }
 
+  /**
+   * Fetch the server-published branding + auto-join config. This lets a generic
+   * launcher be re-branded from the server without shipping a new build. Returns
+   * null if the server hasn't published one.
+   */
+  async getRemoteConfig(): Promise<Record<string, unknown> | null> {
+    try {
+      const res = await fetch(this.url('/api/config'));
+      if (!res.ok) return null;
+      return (await res.json()) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  }
+
   async getManifest(): Promise<Manifest> {
     const res = await fetch(this.url('/api/mods'));
     if (!res.ok) throw new Error(`Failed to fetch manifest: ${res.status}`);

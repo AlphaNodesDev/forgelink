@@ -387,32 +387,51 @@ UNIT
 WEBSITE_URL=""
 
 write_download_page() {
-  # A simple landing page with a "Download Launcher" button that points at the
-  # API's launcher endpoint, plus live status pulled from the API.
+  # Landing page: a "Download Launcher" button pointing at the hosted ZIP bundle
+  # (prebuilt exe + config) when available, otherwise the API launcher endpoint.
+  # Branding (name, logo, background, colors) is baked in from the wizard answers.
   local api_base="$1"
+  local dl_href
+  if [ -n "$LAUNCHER_ZIP" ]; then dl_href="/${LAUNCHER_ZIP}"; else dl_href="${api_base}/api/launcher"; fi
+  local bg_css=""
+  [ -n "$BRAND_BG" ] && bg_css="background:url('${BRAND_BG}') center/cover fixed, #0b0b12;"
+  local logo_html=""
+  [ -n "$BRAND_LOGO" ] && logo_html="<img src='${BRAND_LOGO}' alt='logo' style='max-width:140px;margin-bottom:1rem;border-radius:16px'>"
+
   cat > "$WEBSITE_DIR/index.html" <<HTML
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Download Launcher</title>
+<title>${BRAND_NAME:-Game Server} — Download Launcher</title>
 <style>
- body{margin:0;font-family:system-ui,sans-serif;background:#0b0b12;color:#e8e8f0;
+ body{margin:0;font-family:system-ui,sans-serif;color:#e8e8f0;${bg_css:-background:#0b0b12;}
       min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem}
+ .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:-1}
  h1{font-size:clamp(2rem,6vw,3.5rem);margin:0 0 .5rem}
- .sub{opacity:.7;margin-bottom:2rem}
+ .sub{opacity:.8;margin-bottom:2rem;max-width:36rem}
  .btn{display:inline-block;padding:1rem 2.5rem;border-radius:999px;font-weight:800;color:#fff;text-decoration:none;
-      background:linear-gradient(135deg,#6d28d9,#22d3ee);box-shadow:0 12px 30px -10px #6d28d9}
+      background:linear-gradient(135deg,${BRAND_PRIMARY:-#6d28d9},${BRAND_ACCENT:-#22d3ee});box-shadow:0 12px 30px -10px ${BRAND_PRIMARY:-#6d28d9}}
  .stats{display:flex;gap:1rem;margin-top:2rem;flex-wrap:wrap;justify-content:center}
- .card{background:rgba(255,255,255,.06);border-radius:16px;padding:1rem 1.5rem;min-width:120px}
- .num{font-size:1.6rem;font-weight:800;color:#22d3ee}
+ .card{background:rgba(255,255,255,.08);border-radius:16px;padding:1rem 1.5rem;min-width:120px;backdrop-filter:blur(8px)}
+ .num{font-size:1.6rem;font-weight:800;color:${BRAND_ACCENT:-#22d3ee}}
+ .links{margin-top:1.5rem;display:flex;gap:1rem;justify-content:center}
+ .links a{color:${BRAND_ACCENT:-#22d3ee};text-decoration:none}
+ .note{margin-top:1.5rem;font-size:.8rem;opacity:.6}
 </style></head><body>
- <h1 id="name">Game Server Launcher</h1>
- <div class="sub">Download the launcher, click Play, and you're in.</div>
- <a class="btn" href="${api_base}/api/launcher">⬇ Download Launcher</a>
+ <div class="overlay"></div>
+ ${logo_html}
+ <h1>${BRAND_NAME:-Game Server Launcher}</h1>
+ <div class="sub">Download the launcher, install it, and it will auto-sync mods and connect you to the server.</div>
+ <a class="btn" href="${dl_href}">⬇ Download Launcher</a>
  <div class="stats">
    <div class="card"><div class="num" id="status">—</div><div>Status</div></div>
    <div class="card"><div class="num" id="players">—</div><div>Players</div></div>
  </div>
+ <div class="links">
+   ${BRAND_WEBSITE:+<a href="${BRAND_WEBSITE}">Website</a>}
+   ${BRAND_DISCORD:+<a href="${BRAND_DISCORD}">Discord</a>}
+ </div>
+ <div class="note">Windows · unzip and run the installer · powered by ForgeLink</div>
 <script>
  const API=${api_base@Q};
  fetch(API+'/api/status').then(r=>r.json()).then(s=>{
@@ -509,6 +528,7 @@ final_summary() {
   [ -n "$SERVER_PATH" ] && echo "Game server:    $SERVER_PATH"
   echo "Players connect to: ${PUBLIC_ADDRESS}"
   [ -n "$WEBSITE_URL" ] && echo "Download page:  $WEBSITE_URL"
+  [ -n "$LAUNCHER_ZIP" ] && [ -n "$WEBSITE_URL" ] && echo "Launcher file:  ${WEBSITE_URL}/${LAUNCHER_ZIP}"
   echo
   bold "SAVE YOUR API KEY (needed in the Builder to Publish):"
   printf "    ${c_bold}%s${c_reset}\n" "$API_KEY"
@@ -527,6 +547,150 @@ final_summary() {
 }
 
 # ---------------------------------------------------------------------------
+# Step 4.5 — Branding + build the downloadable launcher bundle
+# ---------------------------------------------------------------------------
+# The launcher .exe is generic and built once (GitHub Actions, Windows). Here we
+# download that prebuilt exe, pair it with a launcher-config.json carrying THIS
+# server's identity + branding, zip them, and host the zip for players. The
+# launcher reads the config at startup, so it is fully branded per server with
+# no per-server Windows build.
+BRAND_NAME=""
+BRAND_LOGO=""
+BRAND_BG=""
+BRAND_PRIMARY="#6d28d9"
+BRAND_ACCENT="#22d3ee"
+BRAND_WEBSITE=""
+BRAND_DISCORD=""
+LAUNCHER_ZIP=""
+
+# GitHub repo releases to pull the prebuilt launcher exe from.
+GH_OWNER_REPO="${FORGELINK_GH_REPO:-AlphaNodesDev/forgelink}"
+
+step_branding_and_launcher() {
+  hr; bold "Step 4.5/5 · Branding & player launcher"; hr
+  echo
+  echo "Your players get ONE launcher. It shows your branding (name, logo,"
+  echo "background, connect button) by reading it from this server — no rebuild"
+  echo "needed. Let's set that branding now."
+  echo
+
+  local default_name; default_name="$(read_server_config_value ServerName 2>/dev/null || echo 'My 7DTD Server')"
+  ask "Server / launcher display name:" BRAND_NAME "$default_name"
+  ask "Logo image URL (shown in the launcher, optional):" BRAND_LOGO ""
+  ask "Background image URL (optional):" BRAND_BG ""
+  ask "Primary color hex:" BRAND_PRIMARY "#6d28d9"
+  ask "Accent color hex:" BRAND_ACCENT "#22d3ee"
+  ask "Website URL (optional):" BRAND_WEBSITE ""
+  ask "Discord invite URL (optional):" BRAND_DISCORD ""
+
+  # Determine the game port for auto-join (from serverconfig.xml or default).
+  local game_port; game_port="$(read_server_config_value ServerPort 2>/dev/null || echo 26900)"
+  [ -z "$game_port" ] && game_port=26900
+
+  # The public API base the launcher talks to. Prefer the website domain over IP.
+  local api_base="http://${PUBLIC_ADDRESS}:${PORT}"
+  # If a website/domain is configured later it becomes https://domain; we publish
+  # config again there. For now use the resolved public address.
+
+  info "Publishing branding + auto-join config to the API"
+  local payload
+  payload="$(cat <<JSON
+{
+  "serverName": $(json_str "$BRAND_NAME"),
+  "autoJoin": { "serverIp": $(json_str "$PUBLIC_ADDRESS"), "gamePort": ${game_port}, "password": "" },
+  "branding": {
+    "logoUrl": $(json_str "$BRAND_LOGO"),
+    "backgroundUrl": $(json_str "$BRAND_BG"),
+    "primaryColor": $(json_str "$BRAND_PRIMARY"),
+    "accentColor": $(json_str "$BRAND_ACCENT"),
+    "website": $(json_str "$BRAND_WEBSITE"),
+    "discord": $(json_str "$BRAND_DISCORD")
+  }
+}
+JSON
+)"
+  if curl -fsS -X POST "http://127.0.0.1:${PORT}/api/admin/publish/config" \
+       -H "content-type: application/json" -H "x-api-key: ${API_KEY}" \
+       -d "$payload" >/dev/null 2>&1; then
+    ok "Branding published (served at /api/config)"
+  else
+    warn "Could not publish config to the API (continuing)."
+  fi
+
+  # Build the downloadable launcher bundle (prebuilt exe + config, zipped).
+  if ask_yn "Download the prebuilt launcher and host it for players now?" "y"; then
+    build_launcher_bundle "$api_base" "$game_port"
+  else
+    warn "Skipped launcher bundle. You can re-run the wizard to build it later."
+  fi
+}
+
+# Emit a JSON-quoted string for the given value (handles quotes/backslashes).
+json_str() {
+  node -e 'process.stdout.write(JSON.stringify(process.argv[1] || ""))' "$1" 2>/dev/null \
+    || printf '"%s"' "$(printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+}
+
+build_launcher_bundle() {
+  local api_base="$1" game_port="$2"
+  local work="/opt/forgelink/launcher-build"
+  rm -rf "$work"; mkdir -p "$work"
+
+  info "Locating the latest prebuilt launcher release on GitHub"
+  # Find a launcher .exe asset in the latest release via the GitHub API.
+  local api="https://api.github.com/repos/${GH_OWNER_REPO}/releases/latest"
+  local exe_url
+  exe_url="$(curl -fsSL "$api" 2>/dev/null \
+    | grep -oE '"browser_download_url":[[:space:]]*"[^"]*[Ll]auncher[^"]*\.exe"' \
+    | head -n1 | sed -E 's/.*"(https[^"]+)"/\1/')"
+
+  if [ -z "$exe_url" ]; then
+    warn "No prebuilt launcher .exe found in the latest GitHub release yet."
+    warn "Build it once with GitHub Actions (push a tag like v1.0.0), then re-run."
+    warn "Players can still connect manually; the download button will appear once built."
+    return
+  fi
+
+  info "Downloading launcher: $exe_url"
+  command -v unzip >/dev/null 2>&1 || apt-get install -y zip unzip >/dev/null 2>&1 || true
+  command -v zip   >/dev/null 2>&1 || apt-get install -y zip >/dev/null 2>&1 || true
+
+  curl -fsSL "$exe_url" -o "$work/launcher-setup.exe" || { warn "Launcher download failed."; return; }
+
+  # Write the launcher-config.json the launcher reads on first run.
+  cat > "$work/launcher-config.json" <<JSON
+{
+  "apiBase": "${api_base}",
+  "serverId": "primary",
+  "serverName": "${BRAND_NAME}",
+  "gameId": "seven-days-to-die",
+  "verifySignatures": false,
+  "verifyChecksums": true,
+  "publicKey": "",
+  "website": "${BRAND_WEBSITE}",
+  "discord": "${BRAND_DISCORD}",
+  "branding": {
+    "launcherIcon": "", "backgroundImage": "${BRAND_BG}", "banner": "",
+    "serverLogo": "${BRAND_LOGO}", "splashScreen": "",
+    "primaryColor": "${BRAND_PRIMARY}", "accentColor": "${BRAND_ACCENT}",
+    "fontFamily": "Inter", "themeMode": "dark", "customCss": ""
+  },
+  "autoJoin": { "serverIp": "${PUBLIC_ADDRESS}", "gamePort": ${game_port}, "password": "" }
+}
+JSON
+
+  # Zip exe + config into the hosted download.
+  mkdir -p "$WEBSITE_DIR"
+  local zip_name; zip_name="$(printf '%s' "$BRAND_NAME" | tr -cd '[:alnum:]' | tr '[:upper:]' '[:lower:]')"
+  [ -z "$zip_name" ] && zip_name="launcher"
+  zip_name="${zip_name}-launcher.zip"
+  ( cd "$work" && zip -q -j "$WEBSITE_DIR/$zip_name" launcher-setup.exe launcher-config.json )
+  chown -R "$SERVICE_USER:$SERVICE_USER" "$WEBSITE_DIR"
+  LAUNCHER_ZIP="$zip_name"
+  ok "Launcher bundle hosted: $zip_name"
+}
+
+# ---------------------------------------------------------------------------
 # Run
 # ---------------------------------------------------------------------------
 main() {
@@ -534,6 +698,7 @@ main() {
   step_locate_server
   step_resolve_address
   step_install_api
+  step_branding_and_launcher
   step_website
   final_summary
 }
