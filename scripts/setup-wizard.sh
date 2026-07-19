@@ -247,6 +247,31 @@ detect_public_ip() {
   printf '%s' "$ip"
 }
 
+# Is a TCP port currently in use (by anything)?
+port_in_use() {
+  local p="$1"
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltn "( sport = :$p )" 2>/dev/null | grep -q ":$p "
+  else
+    # Fallback: try to connect; if it succeeds, something is listening.
+    (exec 3<>"/dev/tcp/127.0.0.1/$p") >/dev/null 2>&1 && { exec 3>&- 3<&-; return 0; }
+    return 1
+  fi
+}
+
+# Find the first free port at or above the preferred one. Skips ports our own
+# stopped service used, so we don't fight useful apps already running.
+find_free_port() {
+  local start="$1" p="$1" max=$(( $1 + 50 ))
+  while [ "$p" -le "$max" ]; do
+    if ! port_in_use "$p"; then printf '%s' "$p"; return 0; fi
+    p=$((p + 1))
+  done
+  # Nothing free in range — return the start and let the caller warn.
+  printf '%s' "$start"
+  return 1
+}
+
 # Read ServerName/Port etc. from serverconfig.xml if we have a server.
 read_server_config_value() {
   local key="$1" file="$SERVER_PATH/serverconfig.xml"
@@ -302,6 +327,21 @@ step_install_api() {
   mkdir -p "$DATA_DIR" "$STORAGE_DIR" "$WEBSITE_DIR"
   chown -R "$SERVICE_USER:$SERVICE_USER" /opt/forgelink
 
+  # Stop our own previous instance (if any) so its port frees up and can be
+  # reused. We do NOT touch other people's apps.
+  systemctl stop "$SERVICE_NAME" >/dev/null 2>&1 || true
+  pkill -f 'packages/server-api/dist/index.js' >/dev/null 2>&1 || true
+  systemctl reset-failed "$SERVICE_NAME" >/dev/null 2>&1 || true
+  sleep 1
+
+  # Auto-pick a free port so we never collide with other useful apps.
+  local requested="$PORT"
+  if port_in_use "$PORT"; then
+    PORT="$(find_free_port "$PORT")" || warn "No free port found near ${requested}; using ${PORT} anyway."
+    warn "Port ${requested} was busy — using free port ${PORT} instead."
+  fi
+  ok "Using API port ${PORT}"
+
   local scheme="http"; # becomes https after the website/SSL step if chosen
   cat > "/etc/systemd/system/${SERVICE_NAME}.service" <<UNIT
 [Unit]
@@ -330,11 +370,14 @@ UNIT
 
   systemctl daemon-reload
   systemctl enable --now "$SERVICE_NAME" >/dev/null 2>&1
-  sleep 2
-  if curl -fsS "http://127.0.0.1:${PORT}/healthz" >/dev/null 2>&1; then
+  sleep 3
+  # Healthy only if systemd reports active AND the health endpoint answers.
+  if systemctl is-active --quiet "$SERVICE_NAME" \
+     && curl -fsS "http://127.0.0.1:${PORT}/healthz" >/dev/null 2>&1; then
     ok "ForgeLink Server API is running on port ${PORT}"
   else
-    warn "API did not respond yet. Check: journalctl -u ${SERVICE_NAME} -e"
+    warn "API is not healthy. Recent logs:"
+    journalctl -u "$SERVICE_NAME" -n 15 --no-pager >"$TTY" 2>&1 || true
   fi
 }
 
