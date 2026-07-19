@@ -4,13 +4,17 @@
   "description": "ForgeLink Builder — desktop app to configure and build game-server launchers.",
   "license": "SEE LICENSE IN LICENSE",
   "author": "AlphaNodesDev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AlphaNodesDev/forgelink.git"
+  },
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.node.json && vite build",
     "build:renderer": "vite build",
-    "package": "npm run build && electron-builder",
+    "package": "npm run build && electron-builder --publish never",
     "clean": "rimraf dist dist-electron dist-test release",
     "test": "tsc -p tsconfig.test.json && node --test \"dist-test/**/*.test.js\"",
     "lint": "eslint . --ext .ts,.tsx --max-warnings 0"

@@ -307,7 +307,7 @@ If ForgeLink saves you time, **star the repo** — it helps other server owners 
 Commercial license — see [LICENSE](LICENSE). Launchers, installers, websites and
 deployment artifacts you generate with the Builder are yours to distribute to your
 players.
-
+w
 ---
 
 <div align="center">

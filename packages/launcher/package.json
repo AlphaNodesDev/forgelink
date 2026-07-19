@@ -4,12 +4,16 @@
   "description": "ForgeLink Launcher — branded, generated game-server launcher with mod sync and auto-update.",
   "license": "SEE LICENSE IN LICENSE",
   "author": "AlphaNodesDev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AlphaNodesDev/forgelink.git"
+  },
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.node.json && vite build",
-    "package": "npm run build && electron-builder",
+    "package": "npm run build && electron-builder --publish never",
     "clean": "rimraf dist dist-electron release",
     "test": "node --test"
   },
