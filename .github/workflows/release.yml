@@ -39,15 +39,23 @@ jobs:
           npm run build:shared
           npm run build:adapters
 
+      # Work around a known electron-builder + npm-workspaces issue where the
+      # hoisted 7zip-bin binary is missing/unusable. Reinstall it at the root so
+      # 7za.exe is present, and disable code signing (we're not signing yet).
+      - name: Ensure 7zip-bin is present
+        run: npm install 7zip-bin@5 --no-save
+
       - name: Package Builder (Windows installer)
         run: npm run package --workspace=@forgelink/builder
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
       - name: Package Launcher (Windows installer)
         run: npm run package --workspace=@forgelink/launcher
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
       - name: Collect installers
         shell: bash
