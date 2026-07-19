@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "ForgeLink Builder — desktop app to configure and build game-server launchers.",
   "license": "SEE LICENSE IN LICENSE",
+  "author": "AlphaNodesDev",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -40,6 +41,7 @@
   "build": {
     "appId": "com.forgelink.builder",
     "productName": "ForgeLink Builder",
+    "electronVersion": "31.3.0",
     "directories": { "output": "release" },
     "files": ["dist/**/*", "dist-electron/**/*"],
     "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },

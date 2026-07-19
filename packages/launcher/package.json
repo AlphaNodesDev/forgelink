@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "ForgeLink Launcher — branded, generated game-server launcher with mod sync and auto-update.",
   "license": "SEE LICENSE IN LICENSE",
+  "author": "AlphaNodesDev",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -37,6 +38,7 @@
   "build": {
     "appId": "com.forgelink.launcher",
     "productName": "ForgeLink Launcher",
+    "electronVersion": "31.3.0",
     "directories": { "output": "release" },
     "files": ["dist/**/*", "dist-electron/**/*", "launcher-config.json"],
     "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
